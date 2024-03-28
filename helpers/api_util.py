@@ -2,12 +2,12 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from helpers import env
+import env
 from helpers.logger import Logger
 
 logger = Logger().getLogger()
 
-baseUrl = env.api_url
+baseUrl = env.API_URL_WITH_VERSION
 
 # Create HTTP session for hitting apis
 
@@ -15,6 +15,8 @@ session = requests.Session()
 retries = Retry(total=5, connect=10, backoff_factor=1,
                 status_forcelist=[500, 502, 503, 504])
 adapter = requests.adapters.HTTPAdapter(max_retries=retries)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
 
 
 def get_headers():
@@ -25,19 +27,16 @@ def get_headers():
     return headers
 
 
-def get_request(api_url, query_param=None):
-    url = baseUrl + api_url
+def get_request(api_url_get, query_param=None):
+    url = baseUrl + api_url_get
     logger.info(f"GET Request call url: {url}")
     headers = get_headers()
-    session.mount(url, adapter)
+
     try:
         response = session.get(headers=headers, url=url, params=query_param, verify=None, timeout=(5, 20))
+        logger.info(f"Response code is {response.status_code}")
         if response.status_code == 401:
             raise Exception("User is not Authorized")
-        else:
-            response.raise_for_status()
-        response = session.get(headers=headers, url=url, params=query_param, verify=None, timeout=(5, 20))
-        response.raise_for_status()
     except requests.exceptions.ConnectionError as conError:
         return "A connection error has occurred::" + repr(conError)
     except requests.exceptions.HTTPError as httpErr:
@@ -47,5 +46,4 @@ def get_request(api_url, query_param=None):
     except requests.exceptions.RequestException as error:
         return "An unknown error has occurred" + repr(error)
     json_obj = response.json()
-    logger.info(json_obj)
-    return json_obj
+    return json_obj, response.status_code
