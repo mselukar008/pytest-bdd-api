@@ -6,7 +6,7 @@ API Tests automation repo with pytest-bdd and python
 - Clone the repo and import the project in Pycharm
 - Create virtual environment and activate it (e.g.Windows PF)
   - `python -m venv venv`
-  - `source venv/Scripts/activate`
+  - `venv/Scripts/activate.bat`
 - Install all dependencies from requirements.txt `pip install -r requirements.txt`
 
 ## Test Execution
